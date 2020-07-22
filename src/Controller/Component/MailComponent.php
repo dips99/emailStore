@@ -9,6 +9,11 @@ class MailComponent extends Component{
     
     protected $_defaultConfig = [];
 
+
+    /*
+    * function to save the email data in db
+    */
+
     public function save($data){
         
         $emailTable = TableRegistry::getTableLocator()->get('email');

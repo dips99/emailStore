@@ -18,6 +18,10 @@ class MailsController extends AppController
         $this->loadComponent('Flash');
     }
 
+    
+    /*
+    * function to input email and password of gmail 
+    */
     public function index()
     {
         if ($this->request->is('post')) {
@@ -34,6 +38,12 @@ class MailsController extends AppController
         }
     }
 
+
+    /*
+    * function to connect gmail and read emails
+    * @param array
+    * @output array 
+    */
     protected function read_mail($data)
     {
         try {
@@ -160,7 +170,9 @@ class MailsController extends AppController
             echo 'Cannot connect ' . $e->getMessage();
         }
     }
-
+    /*
+    * function to list the mails 
+    */
     public function list(){
         $session = $this->getRequest()->getSession();
         $emailid = $session->read('emailid');
@@ -172,6 +184,9 @@ class MailsController extends AppController
         $this->set('mails',$output);        
     }
 
+    /*
+    * function to view a particular the mail with attachment
+    */
     public function view($id = null)
     {
         $session = $this->getRequest()->getSession();
