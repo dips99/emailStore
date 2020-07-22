@@ -132,7 +132,7 @@ class MailsController extends AppController
                                     $filename = time() . ".dat";
                                 }
 
-                                $out[$count]['attachment'] = $filename;
+                                $out[$count]['attachment'] = $email."-".$filename;
                                 $attachment_dir = ROOT."/attachments/";
                                 if(is_dir($attachment_dir)){
                                     @mkdir($attachment_dir,0777,true);

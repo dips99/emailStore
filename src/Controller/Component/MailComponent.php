@@ -19,8 +19,10 @@ class MailComponent extends Component{
         $email->email_id = $data['email_id'];
         $email->to_email = $data['to_email'];
         $email->email_received_time = $data['email_received_time'];
-        $email->attachment = $data['attachment'];
-
+        if(isset($data['attachment'])){
+            $email->attachment = $data['attachment'];
+        }
+        
         // $emailTable->save($email);
         if ($emailTable->save($email)) {
             $id = $email->id;
