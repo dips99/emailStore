@@ -26,10 +26,8 @@ class MailsController extends AppController
 
             foreach($response as $res){
                 $this->Mail->save($res);
-                
                 $session = $this->getRequest()->getSession();
                 $session->write('emailid', $data['email_id']);
-                
             }
             $this->Flash->success('Unread Messages saved.');
             $this->redirect(['action' => 'list']);
@@ -56,7 +54,7 @@ class MailsController extends AppController
             
             if ($emails) {
                 $max_emails = 4;
-                natsort($emails);
+                rsort($emails);
                 
                 foreach ($emails as $email) {
                     $overview = imap_fetch_overview($inbox, $email, 0);
@@ -73,82 +71,81 @@ class MailsController extends AppController
 
 
                     /* if any attachments found... */
-                    // if(isset($structure->parts) && count($structure->parts)) 
-                    // {
-                    //     for($j = 0; $j < count($structure->parts); $j++) 
-                    //     {
-                    //         $attachments[$j] = ['is_attachment' => false,
-                    //             'filename' => '',
-                    //             'name' => '',
-                    //             'attachment' => ''];
+                    if(isset($structure->parts) && count($structure->parts)) 
+                    {
+                        for($j = 0; $j < count($structure->parts); $j++) 
+                        {
+                            $attachments[$j] = ['is_attachment' => false,
+                                'filename' => '',
+                                'name' => '',
+                                'attachment' => ''];
 
-                    //         if($structure->parts[$j]->ifdparameters) 
-                    //         {
-                    //             foreach($structure->parts[$j]->dparameters as $obj) 
-                    //             {
-                    //                 if(strtolower($obj->attribute) == 'filename') 
-                    //                 {
-                    //                     $attachments[$j]['is_attachment'] = true;
-                    //                     $attachments[$j]['filename'] = $obj->value;
-                    //                 }
-                    //             }
-                    //         }
+                            if($structure->parts[$j]->ifdparameters) 
+                            {
+                                foreach($structure->parts[$j]->dparameters as $obj) 
+                                {
+                                    if(strtolower($obj->attribute) == 'filename') 
+                                    {
+                                        $attachments[$j]['is_attachment'] = true;
+                                        $attachments[$j]['filename'] = $obj->value;
+                                    }
+                                }
+                            }
 
-                    //         if($structure->parts[$j]->ifparameters) 
-                    //         {
-                    //             foreach($structure->parts[$j]->parameters as $obj) 
-                    //             {
-                    //                 if(strtolower($obj->attribute) == 'name') 
-                    //                 {
-                    //                     $attachments[$j]['is_attachment'] = true;
-                    //                     $attachments[$j]['name'] = $obj->value;
-                    //                 }
-                    //             }
-                    //         }
+                            if($structure->parts[$j]->ifparameters) 
+                            {
+                                foreach($structure->parts[$j]->parameters as $obj) 
+                                {
+                                    if(strtolower($obj->attribute) == 'name') 
+                                    {
+                                        $attachments[$j]['is_attachment'] = true;
+                                        $attachments[$j]['name'] = $obj->value;
+                                    }
+                                }
+                            }
 
-                    //         if($attachments[$j]['is_attachment']) 
-                    //         {
-                    //             $attachments[$j]['attachment'] = imap_fetchbody($inbox, $email, $j+1);
+                            if($attachments[$j]['is_attachment']) 
+                            {
+                                $attachments[$j]['attachment'] = imap_fetchbody($inbox, $email, $j+1);
 
-                    //             /* 3 = BASE64 encoding */
-                    //             if($structure->parts[$j]->encoding == 3) 
-                    //             { 
-                    //                 $attachments[$j]['attachment'] = base64_decode($attachments[$j]['attachment']);
-                    //             }
-                    //             /* 4 = QUOTED-PRINTABLE encoding */
-                    //             elseif($structure->parts[$j]->encoding == 4) 
-                    //             { 
-                    //                 $attachments[$j]['attachment'] = quoted_printable_decode($attachments[$j]['attachment']);
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                                /* 3 = BASE64 encoding */
+                                if($structure->parts[$j]->encoding == 3) 
+                                { 
+                                    $attachments[$j]['attachment'] = base64_decode($attachments[$j]['attachment']);
+                                }
+                                /* 4 = QUOTED-PRINTABLE encoding */
+                                elseif($structure->parts[$j]->encoding == 4) 
+                                { 
+                                    $attachments[$j]['attachment'] = quoted_printable_decode($attachments[$j]['attachment']);
+                                }
+                            }
+                        }
 
-                    /* iterate through each attachment and save it */
-                    // foreach($attachments as $attachment)
-                    // {
-                    //     if($attachment['is_attachment'] == 1)
-                    //     {
-                    //         $filename = $attachment['name'];
-                    //         if(empty($filename)) {
-                    //             $filename = $attachment['filename'];
-                    //         }
+                        foreach ($attachments as $attachment) {
+                            if ($attachment['is_attachment'] == 1) {
+                                $filename = $attachment['name'];
+                                if (empty($filename)) {
+                                    $filename = $attachment['filename'];
+                                }
 
-                    //         if (empty($filename)) {
-                    //             $filename = time() . ".dat";
-                    //         }
+                                if (empty($filename)) {
+                                    $filename = time() . ".dat";
+                                }
 
-                    //         $out['attachment'] = $filename;
-                    //         /* prefix the email to the filename in case two emails
-                    //         * have the attachment with the same file name.
-                    //         */
-                    //         // $mm_dir = new Folder(WWW_ROOT . 'attachments', true, 0755);
-                    //         $fp = fopen("./attachments/" . $email . "-" . $filename, "w+");
-                    //         fwrite($fp, $attachment['attachment']);
-                    //         fclose($fp);
-                    //     }
+                                $out[$count]['attachment'] = $filename;
+                                $attachment_dir = ROOT."/attachments/";
+                                if(is_dir($attachment_dir)){
+                                    @mkdir($attachment_dir,0777,true);
+                                }
+                                $fp = fopen($attachment_dir . $email . "-" . $filename, "wb");
+                                @chmod($attachment_dir . $email . "-" . $filename, 777); 
+                                fwrite($fp, $attachment['attachment']);
+                                fclose($fp);
+                            }
+                        }
 
-                    // }
+                    }
+
 
                     if ($count++ >= $max_emails) {
                         break;
@@ -167,12 +164,7 @@ class MailsController extends AppController
     public function list(){
         $session = $this->getRequest()->getSession();
         $emailid = $session->read('emailid');
-        // echo $emailid;
-        // $emailid='dipanwitadasdk1987@gmail.com';
         $this->loadModel('Email');
-        // $view = new View($this->request,$this->response,null);
-        // $view->viewPath='Mails';
-        // $view->layout=false;
         $mails = $this->Email->find('all')
                 ->where(['to_email ' => $emailid])
                 ->select(['id','to_email', 'email_id', 'subject']);
